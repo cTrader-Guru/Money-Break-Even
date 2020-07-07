@@ -184,7 +184,7 @@ namespace cAlgo
         /// <summary>
         /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
         /// </summary>
-        public const string VERSION = "1.0.5";
+        public const string VERSION = "1.0.6";
 
         #endregion
 
@@ -196,7 +196,7 @@ namespace cAlgo
         [Parameter("Net Profit Activation", Group = "Params", DefaultValue = 10.0)]
         public double BEfrom { get; set; }
 
-        [Parameter("Net Profit Break Even", Group = "Params", DefaultValue = 3.0)]
+        [Parameter("Net Profit Target", Group = "Params", DefaultValue = 3.0)]
         public double BE { get; set; }
 
         [Parameter("All Cross ?", Group = "Options", DefaultValue = false)]
@@ -326,7 +326,7 @@ namespace cAlgo
             Chart.DrawStaticText("BoxMBE", info, VAlign,HAlign, Color.FromName(mycolor.ToString("G")));
 
             // --> Se attivato e se sono la soglia di BE chiudo tutto
-            if (Activated && ((BEfrom > BE && ttnp <= BE) || (BEfrom < BE && ttnp >= BE)))
+            if ( ( Activated && ( (BEfrom > BE && ttnp <= BE) || (BEfrom < BE && ttnp >= BE) ) ) || ( BEfrom == BE && ( (BE >= 0 && ttnp >= BE) || (BE < 0 && ttnp <= BE) ) ) )
             {
 
                 // --> Chiudo tutti i trade
