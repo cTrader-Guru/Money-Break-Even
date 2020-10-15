@@ -219,6 +219,9 @@ namespace cAlgo
         [Parameter("Remove Pending Orders ?", Group = "Options", DefaultValue = true)]
         public bool RemovePO { get; set; }
 
+        [Parameter("Color Target Logic", Group = "Styles", DefaultValue = MyColors.Magenta)]
+        public MyColors Boxcolortarget { get; set; }
+
         [Parameter("Color Positive Logic", Group = "Styles", DefaultValue = MyColors.DodgerBlue)]
         public MyColors Boxcolorpositive { get; set; }
 
@@ -289,7 +292,7 @@ namespace cAlgo
             if (MyCalcMode == CalcMode.Percentage)
             {
 
-                BEfrom = Math.Round( ( FixedBalance / 100 ) * FixedBEfrom, 2 );
+                BEfrom = Math.Round((FixedBalance / 100) * FixedBEfrom, 2);
                 BE = Math.Round((FixedBalance / 100) * FixedBE, 2);
 
             }
@@ -332,7 +335,7 @@ namespace cAlgo
 
             // --> Stampo a video alcune informazioni
             string scope = (GlobalTarget) ? "all cross" : "the current cross";
-            string logica = (BEfrom > BE) ? "positive" : "negative";
+            string logica = (BEfrom == BE) ? "target" : (BEfrom > BE) ? "positive" : "negative";
             string direction = (BEfrom > BE) ? "less" : "greater";
             string netpt = String.Format("{0:0.00}", ttnp);
 
@@ -350,7 +353,7 @@ namespace cAlgo
 
             info = string.Format(info, netpt);
 
-            MyColors mycolor = (BEfrom > BE) ? Boxcolorpositive : Boxcolornegative;
+            MyColors mycolor = (BEfrom == BE) ? Boxcolortarget : (BEfrom > BE) ? Boxcolorpositive : Boxcolornegative;
 
             if (Activated)
                 mycolor = Boxcoloractive;
@@ -393,7 +396,7 @@ namespace cAlgo
                 Activated = false;
 
             }
-                    
+
         }
 
         #endregion
