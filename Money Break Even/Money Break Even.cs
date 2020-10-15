@@ -24,7 +24,7 @@ namespace cAlgo
     {
 
         #region Enums
-        
+
         public enum MyColors
         {
 
@@ -172,6 +172,14 @@ namespace cAlgo
 
         }
 
+        public enum CalcMode
+        {
+
+            Money,
+            Percentage
+
+        }
+
         #endregion
 
         #region Identity
@@ -184,7 +192,7 @@ namespace cAlgo
         /// <summary>
         /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
         /// </summary>
-        public const string VERSION = "1.0.7";
+        public const string VERSION = "1.0.8";
 
         #endregion
 
@@ -193,10 +201,13 @@ namespace cAlgo
         [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://ctrader.guru/product/money-break-even/")]
         public string ProductInfo { get; set; }
 
-        [Parameter("Net Profit Activation", Group = "Params", DefaultValue = 10.0)]
+        [Parameter("Mode", Group = "Params", DefaultValue = CalcMode.Percentage)]
+        public CalcMode MyCalcMode { get; set; }
+
+        [Parameter("Net Profit Activation ( $ | % )", Group = "Params", DefaultValue = 10.0)]
         public double BEfrom { get; set; }
 
-        [Parameter("Net Profit Target", Group = "Params", DefaultValue = 3.0)]
+        [Parameter("Net Profit Target ( $ | % )", Group = "Params", DefaultValue = 3.0)]
         public double BE { get; set; }
 
         [Parameter("All Cross ?", Group = "Options", DefaultValue = false)]
@@ -236,6 +247,10 @@ namespace cAlgo
 
         private bool Activated;
 
+        private double FixedBEfrom = 0;
+        private double FixedBE = 0;
+        private double FixedBalance = 0;
+
         #endregion
 
         #region cBot Events
@@ -245,7 +260,11 @@ namespace cAlgo
 
             // --> Stampo nei log la versione corrente
             Print("{0} : {1}", NAME, VERSION);
-            
+
+            FixedBEfrom = BEfrom;
+            FixedBE = BE;
+            FixedBalance = Account.Balance;
+
             Activated = false;
 
             OnTick();
@@ -266,13 +285,19 @@ namespace cAlgo
         void _monitoring()
         {
 
+            // --> Controllo se calcolare la percentuale sul bilancio
+            if (MyCalcMode == CalcMode.Percentage)
+            {
+
+                BEfrom = Math.Round( ( FixedBalance / 100 ) * FixedBEfrom, 2 );
+                BE = Math.Round((FixedBalance / 100) * FixedBE, 2);
+
+            }
+
             // --> Raccolgo tutte le operazioni su questo simbolo
             int nPositions = 0;
 
             double ttnp = 0.0;
-
-            // --> Potrei avere trades con totale a zero, meglio contarli a parte
-            int tttrades = 0;
 
             foreach (var Position in Positions)
             {
@@ -282,13 +307,20 @@ namespace cAlgo
 
                 ttnp += Position.NetProfit;
                 nPositions++;
-                tttrades++;
 
             }
 
             // --> Se non ci sono trade da monitorare deattivo e basta
-            if (tttrades < 1)
+            if (nPositions < 1)
+            {
+
+                // --> Disattivo
                 Activated = false;
+
+                // --> Resetto il nuovo bilancio
+                FixedBalance = Account.Balance;
+
+            }
 
             // --> Se selezionato e se non ci sono trade, fermo il cBot
             if (AutoStop && nPositions < 1)
@@ -323,10 +355,10 @@ namespace cAlgo
             if (Activated)
                 mycolor = Boxcoloractive;
 
-            Chart.DrawStaticText("BoxMBE", info, VAlign,HAlign, Color.FromName(mycolor.ToString("G")));
+            Chart.DrawStaticText("BoxMBE", info, VAlign, HAlign, Color.FromName(mycolor.ToString("G")));
 
             // --> Se attivato e se sono la soglia di BE chiudo tutto
-            if ( ( Activated && ( (BEfrom > BE && ttnp <= BE) || (BEfrom < BE && ttnp >= BE) ) ) || ( BEfrom == BE && ( (BE >= 0 && ttnp >= BE) || (BE < 0 && ttnp <= BE) ) ) )
+            if ((Activated && ((BEfrom > BE && ttnp <= BE) || (BEfrom < BE && ttnp >= BE))) || (BEfrom == BE && ((BE >= 0 && ttnp >= BE) || (BE < 0 && ttnp <= BE))))
             {
 
                 // --> Chiudo tutti i trade
@@ -361,7 +393,7 @@ namespace cAlgo
                 Activated = false;
 
             }
-
+                    
         }
 
         #endregion
