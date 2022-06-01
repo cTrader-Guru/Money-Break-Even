@@ -11,10 +11,6 @@
 
 using System;
 using cAlgo.API;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
 
 
 namespace cAlgo
@@ -184,21 +180,15 @@ namespace cAlgo
 
         #region Identity
 
-        /// <summary>
-        /// Nome del prodotto, identificativo, da modificare con il nome della propria creazione 
-        /// </summary>
         public const string NAME = "Money Break Even";
 
-        /// <summary>
-        /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
-        /// </summary>
         public const string VERSION = "1.0.8";
 
         #endregion
 
         #region Params
 
-        [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://ctrader.guru/product/money-break-even/")]
+        [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://www.google.com/search?q=ctrader+guru+money+break+even")]
         public string ProductInfo { get; set; }
 
         [Parameter("Mode", Group = "Params", DefaultValue = CalcMode.Percentage)]
@@ -231,15 +221,9 @@ namespace cAlgo
         [Parameter("Color Activated", Group = "Styles", DefaultValue = MyColors.DarkViolet)]
         public MyColors Boxcoloractive { get; set; }
 
-        /// <summary>
-        /// Opzione per la posizione del box info in verticale
-        /// </summary>
         [Parameter("Vertical Position", Group = "Styles", DefaultValue = VerticalAlignment.Top)]
         public VerticalAlignment VAlign { get; set; }
 
-        /// <summary>
-        /// Opzione per la posizione del box info in orizontale
-        /// </summary>
         [Parameter("Horizontal Position", Group = "Styles", DefaultValue = HorizontalAlignment.Left)]
         public HorizontalAlignment HAlign { get; set; }
 
@@ -261,7 +245,6 @@ namespace cAlgo
         protected override void OnStart()
         {
 
-            // --> Stampo nei log la versione corrente
             Print("{0} : {1}", NAME, VERSION);
 
             FixedBEfrom = BEfrom;
@@ -277,7 +260,7 @@ namespace cAlgo
         protected override void OnTick()
         {
 
-            _monitoring();
+            Monitoring();
 
         }
 
@@ -285,10 +268,9 @@ namespace cAlgo
 
         #region Private Methods
 
-        void _monitoring()
+        void Monitoring()
         {
 
-            // --> Controllo se calcolare la percentuale sul bilancio
             if (MyCalcMode == CalcMode.Percentage)
             {
 
@@ -297,7 +279,6 @@ namespace cAlgo
 
             }
 
-            // --> Raccolgo tutte le operazioni su questo simbolo
             int nPositions = 0;
 
             double ttnp = 0.0;
@@ -313,27 +294,21 @@ namespace cAlgo
 
             }
 
-            // --> Se non ci sono trade da monitorare deattivo e basta
             if (nPositions < 1)
             {
 
-                // --> Disattivo
                 Activated = false;
 
-                // --> Resetto il nuovo bilancio
                 FixedBalance = Account.Balance;
 
             }
 
-            // --> Se selezionato e se non ci sono trade, fermo il cBot
             if (AutoStop && nPositions < 1)
                 Stop();
 
-            // --> Valorizzo l'attivazione se raggiunto
             if (!Activated && ((BEfrom > BE && ttnp >= BEfrom) || (BEfrom < BE && ttnp <= BEfrom)))
                 Activated = true;
 
-            // --> Stampo a video alcune informazioni
             string scope = (GlobalTarget) ? "all cross" : "the current cross";
             string logica = (BEfrom == BE) ? "target" : (BEfrom > BE) ? "positive" : "negative";
             string direction = (BEfrom > BE) ? "less" : "greater";
@@ -360,11 +335,8 @@ namespace cAlgo
 
             Chart.DrawStaticText("BoxMBE", info, VAlign, HAlign, Color.FromName(mycolor.ToString("G")));
 
-            // --> Se attivato e se sono la soglia di BE chiudo tutto
             if ((Activated && ((BEfrom > BE && ttnp <= BE) || (BEfrom < BE && ttnp >= BE))) || (BEfrom == BE && ((BE >= 0 && ttnp >= BE) || (BE < 0 && ttnp <= BE))))
             {
-
-                // --> Chiudo tutti i trade
 
                 foreach (var Position in Positions)
                 {
@@ -376,7 +348,6 @@ namespace cAlgo
 
                 }
 
-                // --> Chiudo tutti gli ordini pendenti se richiesto
                 if (RemovePO)
                 {
 
@@ -392,7 +363,6 @@ namespace cAlgo
 
                 }
 
-                // --> Resetto il flag
                 Activated = false;
 
             }
