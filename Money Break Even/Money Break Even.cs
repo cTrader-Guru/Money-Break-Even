@@ -12,7 +12,6 @@
 using System;
 using cAlgo.API;
 
-
 namespace cAlgo
 {
     [Robot(TimeZone = TimeZones.UTC, AccessRights = AccessRights.None)]
@@ -182,7 +181,7 @@ namespace cAlgo
 
         public const string NAME = "Money Break Even";
 
-        public const string VERSION = "1.0.8";
+        public const string VERSION = "1.0.9";
 
         #endregion
 
@@ -253,14 +252,32 @@ namespace cAlgo
 
             Activated = false;
 
-            OnTick();
+            if (!GlobalTarget) { 
+            
+                OnTick();
+            
+            }
+            else
+            {
+
+                Timer.Start(1);
+                OnTimer();
+
+            }
+
+        }
+
+        protected override void OnTimer()
+        {
+
+            if (GlobalTarget) Monitoring();
 
         }
 
         protected override void OnTick()
         {
 
-            Monitoring();
+            if (!GlobalTarget) Monitoring();
 
         }
 
